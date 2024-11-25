@@ -1,62 +1,48 @@
-" Habilitar la numeración de líneas global
-set number
+" Configuración general para Latex
+syntax on
+filetype plugin on
+set conceallevel=2
+let g:vimtex_view_method = 'zathura'
+let g:vimtex_compiler_method = 'latexmk'
 
-" Habilitar la numeracón relativa
+" tema del editor
+colorscheme sorbet
+
+" permitir buffers sin guardar
+set hidden
+
+" habilitar numeración global
+set number
+"" habilitar numeración relativa
 set relativenumber
 
-" Desactivas el movimiento con las flechas en el modo normal
+" desactivar el movimiento con lsa flechas en el modo normal
 nnoremap <Up> <Nop>
 nnoremap <Down> <Nop>
 nnoremap <Left> <Nop>
 nnoremap <Right> <Nop>
 
-" Configuración de identación
+" configuracion de identacion
 set shiftwidth=2
 set tabstop=2
 set softtabstop=2
 
-" vim-plug
-call plug#begin('~/.local/share/nvim/plugged')
+" status linea configuration
+set laststatus=2  
+set statusline=%f\ %h%m%r\ %=%-14.(%l,%c%V%)\ %P
+set termguicolors
+set statusline=%#StatusLine#%f\ %#WarningMsg#%h%w%m%r\ %#StatusLine#%=%-14.(%l,%c%V%)\ %P
 
-" Aquí se añadirán los plugins
-Plug 'neovim/nvim-lspconfig'     " Configuración LSP para Neovim
-Plug 'neoclide/coc.nvim', {'branch': 'release'}  " Autocompletado para Neovim
-Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
-Plug 'junegunn/fzf.vim'
-Plug 'nvim-lualine/lualine.nvim'
-Plug 'kyazdani42/nvim-web-devicons'
+call plug#begin('~/.vim/plugged')
+" coc
+Plug 'neoclide/coc.nvim', {'branch': 'release'}
+" auto pairs
+Plug 'jiangmiao/auto-pairs'
+" vimtex
 Plug 'lervag/vimtex'
-
 call plug#end()
 
-" Configuraciones de VimTex
-" Usa pdflatex en lugar de latexmk
-let g:vimtex_compiler_method = 'latexmk'
 
-" Configura zathura como visor de PDF
-let g:vimtex_view_method = 'zathura'
-
-" configuracion de lualine.nvim
-lua << EOF
-require('lualine').setup {
-  options = {
-    theme = 'gruvbox',  -- Cambia 'gruvbox' por el tema que prefieras
-	icons_enabled = false,
-  },
-  sections = {
-    lualine_a = {'mode'},
-    lualine_b = {'branch', 'diff', 'diagnostics'},
-    lualine_c = {'filename'},
-    lualine_x = {'encoding', 'fileformat', 'filetype'},
-    lualine_y = {'progress'},
-    lualine_z = {'location'}
-  }
-}
-EOF
-
-
-
-" configuración predetermianda de coc
 " https://raw.githubusercontent.com/neoclide/coc.nvim/master/doc/coc-example-config.vim
 
 " May need for Vim (not Neovim) since coc.nvim calculates byte offset by count

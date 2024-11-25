@@ -1,0 +1,43 @@
+# ~/.config/alacritty/alacritty.toml
+
+[window]
+opacity = 0.95  # Fondo ligeramente transparente
+decorations = "full"  # Bordes completos en la ventana
+dynamic_title = true  # Cambiar el título de la ventana dinámicamente
+
+[font]
+size = 11.0  # Tamaño de la fuente
+
+[colors]
+[colors.primary]
+background = "0x0d1b2a"  # Fondo azul oscuro
+foreground = "0x82aaff"  # Texto principal en azul claro
+
+[colors.cursor]
+text = "0x0d1b2a"  # Color del texto del cursor
+cursor = "0x82aaff"  # Color del cursor
+
+[colors.selection]
+text = "0x0d1b2a"  # Color del texto seleccionado
+background = "0x3b5360"  # Fondo de selección
+
+[colors.normal]
+black = "0x1b263b"
+red = "0xe06c75"
+green = "0x98c379"
+yellow = "0xe5c07b"
+blue = "0x61afef"
+magenta = "0xc678dd"
+cyan = "0x56b6c2"
+white = "0xdcdfe4"
+
+[colors.bright]
+black = "0x2e4057"
+red = "0xf7768e"
+green = "0xa3be8c"
+yellow = "0xeec28e"
+blue = "0x82aaff"
+magenta = "0xd4aaff"
+cyan = "0x8be9fd"
+white = "0xffffff"
+

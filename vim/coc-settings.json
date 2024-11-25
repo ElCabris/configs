@@ -1,0 +1,15 @@
+{
+    "python.linting.enabled": true,
+    "python.linting.pylintEnabled": true,
+    "python.linting.pylintArgs": [],
+    "coc.preferences.formatOnSaveFiletypes": ["cpp", "c", "hpp", "h", "py"],
+    "diagnostic.enabled": true,
+    "diagnostic.checkCurrentLine": true,
+    "coc.source.pylint.enable": true,
+    "python.formatting.provider": "black",
+    "python.formatting.backPath": "black",
+    "python.formatting.backArgs": ["--line-length", "88"],
+    "clang-format.executable": "clang-format",
+    "clang-format.style": "file"
+}
+
