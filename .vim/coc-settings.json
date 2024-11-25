@@ -1,15 +1,49 @@
 {
-    "python.linting.enabled": true,
-    "python.linting.pylintEnabled": true,
-    "python.linting.pylintArgs": [],
-    "coc.preferences.formatOnSaveFiletypes": ["cpp", "c", "hpp", "h", "py"],
-    "diagnostic.enabled": true,
-    "diagnostic.checkCurrentLine": true,
-    "coc.source.pylint.enable": true,
-    "python.formatting.provider": "black",
-    "python.formatting.backPath": "black",
-    "python.formatting.backArgs": ["--line-length", "88"],
-    "clang-format.executable": "clang-format",
-    "clang-format.style": "file"
+	"suggest.noselect": true,
+	"suggest.enablePreview": true,
+	"diagnostic.enable": true,
+	"diagnostic.virtualText": true,
+	"diagnostic.signOffset": 0,
+	"coc.preferences.formatOnSaveFiletypes": [
+		"json",
+		"html",
+		"typescript",
+		"javascript",
+		"python",
+		"css",
+		"cpp"
+	],
+	"json.format.enable": true,
+	"json.schemas": [
+		{
+			"fileMatch": [
+				"package.json"
+			],
+			"url": "https://json.schemastore.org/package.json"
+		},
+		{
+			"fileMatch": [
+				"tsconfig.json"
+			],
+			"url": "https://json.schemastore.org/tsconfig.json"
+		}
+	],
+	"html.validate.styles": false,
+	"css.validate": true,
+	"css.lint.unknownAtRules": "ignore",
+	"python.analysis.typeCheckingMode": "basic",
+	"python.analysis.autoImportCompletions": true,
+	"python.formatting.provider": "black",
+	"clangd.arguments": [
+		"--background-index",
+		"--suggest-missing-includes",
+		"--completion-style=detailed",
+		"--header-insertion=iwyu"
+	],
+	"typescript.preferences.quoteStyle": "double",
+	"typescript.updateImportsOnFileMove.enabled": "always",
+	"typescript.suggest.completeFunctionCalls": true,
+	"tsserver.enable": true,
+	"tsserver.useSyntaxServer": "auto",
+	"tsserver.log": "off"
 }
-
