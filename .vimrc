@@ -1,4 +1,13 @@
-" Configuración general para Latex
+" Configuración para netrw
+set nocp
+filetype plugin on
+
+" Configuración para copiar en el portapapeles
+" Para esta configuración es necesario tener la opción de
+" compilación +clipboard 
+set clipboard=unnamed
+
+"Configuración general para Latex
 syntax on
 filetype plugin on
 set conceallevel=2
