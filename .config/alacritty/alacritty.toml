@@ -6,7 +6,9 @@ decorations = "full"  # Bordes completos en la ventana
 dynamic_title = true  # Cambiar el título de la ventana dinámicamente
 
 [font]
-size = 11.0  # Tamaño de la fuente
+normal.family = "JetBrainsMono Nerd Font"
+normal.style = "Normal"
+size = 11.0
 
 [colors]
 [colors.primary]
