@@ -1,218 +1,232 @@
--- Tema
-vim.cmd.colorscheme("vim")
+-- ========================
+-- init.lua
+-- Configuración moderna con lazy.nvim + mason.nvim + mason-lspconfig
+-- ========================
 
--- Configuración para netrw
-vim.opt.compatible = false -- set nocp
-vim.cmd("filetype plugin on")
-
--- Establecer la identación a 2 espacios
-vim.opt.tabstop = 2
-vim.opt.shiftwidth = 2
-vim.opt.expandtab = true
-vim.opt.softtabstop = 2
-
--- Mapeo de la tecla <leader>
-vim.g.mapleader = " " -- Establece la tecla <leader> como la barra espaciadora
-
--- Configuración para copiar en el portapapeles
-vim.opt.clipboard:append("unnamedplus")
-
--- Permitir buffers sin guardar
-vim.opt.hidden = true
-
--- Habilitar numeración global
-vim.opt.number = true
-
--- Habilitar numeración relativa
-vim.opt.relativenumber = true
-
+-- ========================
 -- Bootstrap lazy.nvim
+-- ========================
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
-  local lazyrepo = "https://github.com/folke/lazy.nvim.git"
-  local out = vim.fn.system({ "git", "clone", "--filter=blob:none", "--branch=stable", lazyrepo, lazypath })
-  if vim.v.shell_error ~= 0 then
-    vim.api.nvim_echo({
-      { "Failed to clone lazy.nvim:\n", "ErrorMsg" },
-      { out,                            "WarningMsg" },
-      { "\nPress any key to exit..." },
-    }, true, {})
-    vim.fn.getchar()
-    os.exit(1)
-  end
+	vim.fn.system({
+		"git",
+		"clone",
+		"--filter=blob:none",
+		"https://github.com/folke/lazy.nvim.git",
+		"--branch=stable", -- última versión estable
+		lazypath,
+	})
 end
 vim.opt.rtp:prepend(lazypath)
 
-vim.g.maplocalleader = "\\"
-
--- Setup lazy.nvim
+-- ========================
+-- Plugins
+-- ========================
 require("lazy").setup({
-  spec = {
-    { "neovim/nvim-lspconfig" },
-    { "hrsh7th/nvim-cmp" },
-    { "hrsh7th/cmp-nvim-lsp" },
-    { "hrsh7th/cmp-buffer" },
-    { "hrsh7th/cmp-path" },
-    {
-      "windwp/nvim-autopairs",
-      event = "InsertEnter",
-      config = function()
-        require("nvim-autopairs").setup({ check_ts = true })
-        local cmp_autopairs = require("nvim-autopairs.completion.cmp")
-        local cmp = require("cmp")
-        cmp.event:on("confirm_done", cmp_autopairs.on_confirm_done())
-      end,
-    },
-  },
-  install = { colorscheme = { "habamax" } },
-  checker = { enabled = true },
+
+	-- Temas / UI
+	{ "folke/tokyonight.nvim",     lazy = false,                                    priority = 1000 },
+	{ "nvim-lualine/lualine.nvim", dependencies = { "nvim-tree/nvim-web-devicons" } },
+
+	-- LSP y autocompletado
+	{ "neovim/nvim-lspconfig" },
+	{ "williamboman/mason.nvim",   build = ":MasonUpdate",                          config = true },
+	{
+		"williamboman/mason-lspconfig.nvim",
+		dependencies = { "williamboman/mason.nvim", "neovim/nvim-lspconfig" },
+		config = function()
+			require("mason-lspconfig").setup({
+				ensure_installed = {
+					"bashls",
+					"lua_ls",
+					"gopls",
+					"pyright",
+					"ts_ls", -- NOMBRE CORRECTO
+					"html",
+					"cssls",
+					"clangd",
+					"jsonls",
+					"sqls",
+				},
+			})
+		end
+	},
+	{ "hrsh7th/nvim-cmp" },
+	{ "hrsh7th/cmp-nvim-lsp" },
+	{ "L3MON4D3/LuaSnip" },
+
+	-- Treesitter
+	{
+		"nvim-treesitter/nvim-treesitter",
+		build = ":TSUpdate",
+	},
 })
 
--- Función on_attach
-local function on_attach(client, bufnr)
-  local opts = { noremap = true, silent = true, buffer = bufnr }
-  vim.keymap.set('n', 'gd', vim.lsp.buf.definition, opts)
-  vim.keymap.set('n', 'gr', vim.lsp.buf.references, opts)
-  vim.keymap.set('n', 'K', vim.lsp.buf.hover, opts)
-  vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, opts)
-  vim.keymap.set('n', '<leader>ca', vim.lsp.buf.code_action, opts)
-  vim.keymap.set('n', '<leader>f', vim.lsp.buf.format, opts)
+-- ========================
+-- Opciones básicas
+-- ========================
+vim.o.number = true
+vim.o.relativenumber = true
+vim.o.termguicolors = true
+vim.opt.clipboard = "unnamedplus"
+vim.cmd("colorscheme tokyonight")
 
-  local filetype = vim.api.nvim_buf_get_option(bufnr, "filetype")
-  if filetype == "python" then
-    vim.keymap.set("n", "<leader>f", function()
-      vim.cmd("!black %")
-      vim.cmd("edit!")
-    end, opts)
-  elseif client.supports_method("textDocument/formatting") then
-    vim.keymap.set('n', '<leader>f', function()
-      vim.lsp.buf.format({ async = true })
-    end, opts)
-  end
+-- ========================
+-- Lualine
+-- ========================
+require("lualine").setup({
+	options = { theme = "tokyonight" },
+})
+
+-- ========================
+-- Autocompletado
+-- ========================
+local cmp = require("cmp")
+local luasnip = require("luasnip")
+
+cmp.setup({
+	snippet = {
+		expand = function(args) luasnip.lsp_expand(args.body) end,
+	},
+	mapping = cmp.mapping.preset.insert({
+		["<C-b>"] = cmp.mapping.scroll_docs(-4),
+		["<C-f>"] = cmp.mapping.scroll_docs(4),
+		["<C-Space>"] = cmp.mapping.complete(),
+		["<C-e>"] = cmp.mapping.abort(),
+		["<CR>"] = cmp.mapping.confirm({ select = true }),
+	}),
+	sources = cmp.config.sources({
+		{ name = "nvim_lsp" },
+		{ name = "luasnip" },
+	}),
+})
+
+-- ========================
+-- Configuración de LSP (MÉTODO MODERNO SIN DEPRECATION WARNINGS)
+-- ========================
+
+-- Capacidades de autocompletado
+local capabilities = require("cmp_nvim_lsp").default_capabilities()
+
+-- Configurar servidores LSP
+local servers = {
+	bashls = {},
+	lua_ls = {
+		settings = {
+			Lua = {
+				runtime = { version = 'LuaJIT' },
+				diagnostics = { globals = { 'vim' } },
+				workspace = { library = vim.api.nvim_get_runtime_file("", true) },
+				telemetry = { enable = false },
+			}
+		}
+	},
+	gopls = {},
+	pyright = {},
+	ts_ls = {},
+	html = {},
+	cssls = {},
+	clangd = {},
+	jsonls = {},
+	sqls = {},
+}
+
+-- Configurar cada servidor LSP con el nuevo método
+for server, config in pairs(servers) do
+	local final_config = vim.tbl_deep_extend("force", {
+		capabilities = capabilities,
+	}, config or {})
+
+	-- Usar vim.lsp.start en lugar de require('lspconfig') para evitar warnings
+	vim.api.nvim_create_autocmd("FileType", {
+		pattern = {
+			"lua", "go", "python", "javascript", "typescript",
+			"html", "css", "c", "cpp", "json", "sql", "bash", "sh"
+		},
+		callback = function(args)
+			local bufnr = args.buf
+			local filetype = vim.bo[bufnr].filetype
+
+			-- Mapear filetypes a servidores LSP
+			local ft_to_server = {
+				lua = "lua_ls",
+				go = "gopls",
+				python = "pyright",
+				javascript = "typescript-language-server",
+				typescript = "typescript-language-server",
+				html = "html",
+				css = "cssls",
+				c = "clangd",
+				cpp = "clangd",
+				json = "jsonls",
+				sql = "sqls",
+				bash = "bashls",
+				sh = "bashls",
+			}
+
+			local server_for_ft = ft_to_server[filetype]
+			if server_for_ft and server_for_ft == server then
+				vim.lsp.start({
+					name = server,
+					capabilities = capabilities,
+					settings = config and config.settings or nil,
+					root_dir = vim.fs.dirname(vim.fs.find({ '.git', 'package.json', 'Makefile' },
+						{ upward = true })[1]),
+				})
+			end
+		end,
+	})
 end
 
-local lspconfig = require('lspconfig')
+-- ========================
+-- Keymaps para LSP (método moderno)
+-- ========================
+vim.api.nvim_create_autocmd('LspAttach', {
+	group = vim.api.nvim_create_augroup('UserLspConfig', {}),
+	callback = function(ev)
+		local bufnr = ev.buf
+		local client = vim.lsp.get_client_by_id(ev.data.client_id)
 
--- Configuración de LSPs
-local capabilities = require('cmp_nvim_lsp').default_capabilities()
+		if not client then return end
 
-
-lspconfig.sqls.setup({
-  capabilities = capabilities,
-  on_attach = on_attach,
+		local opts = { buffer = bufnr }
+		vim.keymap.set('n', 'gd', vim.lsp.buf.definition, opts)
+		vim.keymap.set('n', 'K', vim.lsp.buf.hover, opts)
+		vim.keymap.set('n', 'gr', vim.lsp.buf.references, opts)
+		vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, opts)
+		vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, opts)
+		vim.keymap.set({ 'n', 'v' }, '<leader>ca', vim.lsp.buf.code_action, opts)
+	end,
 })
 
-lspconfig.bashls.setup({
-  capabilities = capabilities,
-  on_attach = on_attach,
+-- ========================
+-- Treesitter
+-- ========================
+require("nvim-treesitter.configs").setup({
+	ensure_installed = {
+		"lua", "go", "python", "javascript", "typescript",
+		"html", "css", "sql", "json", "bash", "c", "cpp"
+	},
+	highlight = { enable = true },
+	indent = { enable = true },
 })
 
-lspconfig.lua_ls.setup({
-  cmd = { vim.fn.expand("~/tools/lua-language-server/bin/lua-language-server") },
-  capabilities = capabilities,
-  on_attach = on_attach,
-  settings = {
-    Lua = {
-      runtime = { version = "LuaJIT" },
-      diagnostics = { globals = { "vim" } },
-      workspace = {
-        library = vim.api.nvim_get_runtime_file("", true),
-        checkThirdParty = false,
-      },
-      telemetry = { enable = false },
-    },
-  },
+-- ========================
+-- Configuración adicional
+-- ========================
+
+-- Formateo automático al guardar
+vim.api.nvim_create_autocmd('BufWritePre', {
+	pattern = { '*.lua', '*.py', '*.js', '*.ts', '*.go', '*.json' },
+	callback = function()
+		vim.lsp.buf.format({ async = false })
+	end,
 })
 
-
-lspconfig.jdtls.setup {
-  cmd = { 'jdtls', "-data", vim.fn.expand("~/cache/jdtls-workspace"), "--jvm-arg=--enable-native-access=ALL-UNNAMED" },
-  root_dir = lspconfig.util.root_pattern('pom.xml', 'gradle.build', '.git'),
-  on_attach = on_attach,
-  settings = {
-    java = {
-      signatureHelp = { enabled = true },
-      contentProvider = { preferred = 'fernflower' },
-
-      imports = {
-        gradle = {
-          wrapper = {
-            checksums = {
-              {
-                sha256 = "7d3a4ac4de1c32b59bc6a4eb8ecb8e612ccd0cf1ae1e99f66902da64df296172",
-                allowed = true
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
-lspconfig.gopls.setup({
-  capabilities = capabilities,
-  on_attach = on_attach,
-  settings = {
-    gopls = {
-      analyses = {
-        unusedparams = true,
-        unreachable = true,
-      },
-      staticcheck = true,
-    },
-  },
-})
-
-lspconfig.html.setup {
-  capabilities = capabilities,
-  on_attach = on_attach,
-}
-
-lspconfig.cssls.setup {
-  capabilities = capabilities,
-  on_attach = on_attach,
-}
-
-lspconfig.clangd.setup({
-  capabilities = capabilities,
-  cmd = { "clangd" },
-  filetype = { "c", "cpp", "objc", "objcpp" },
-  root_dir = lspconfig.util.root_pattern(".git", "compile_commands.json", "CMakeLists.txt"),
-  on_attach = on_attach,
-})
-
-lspconfig.pyright.setup({
-  capabilities = capabilities,
-  on_attach = on_attach,
-})
-
-lspconfig.r_language_server.setup({
-  capabilities = capabilities,
-  on_attach = on_attach,
-})
-
-lspconfig.ts_ls.setup({
-  capabilities = capabilities,
-  on_attach = on_attach,
-})
-
--- Configuración nvim-cmp
-local cmp = require('cmp')
-cmp.setup({
-  mapping = {
-    ['<C-n>'] = cmp.mapping.select_next_item(),
-    ['<C-p>'] = cmp.mapping.select_prev_item(),
-    ['<C-b>'] = cmp.mapping.scroll_docs(-4),
-    ['<C-f>'] = cmp.mapping.scroll_docs(4),
-    ['<C-Space>'] = cmp.mapping.complete(),
-    ['<C-e>'] = cmp.mapping.abort(),
-    ['<CR>'] = cmp.mapping.confirm({ select = true }),
-  },
-  sources = cmp.config.sources({
-    { name = 'nvim_lsp' },
-  }, {
-    { name = 'buffer' },
-    { name = 'path' },
-  }),
+-- Mejorar diagnósticos
+vim.diagnostic.config({
+	virtual_text = { spacing = 4, prefix = '●' },
+	signs = true,
+	underline = true,
+	update_in_insert = false,
 })
