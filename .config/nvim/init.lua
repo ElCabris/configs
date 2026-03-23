@@ -6,6 +6,13 @@
 -- ========================
 -- Bootstrap lazy.nvim
 -- ========================
+
+vim.loader.enable()
+vim.opt.mouse = ""
+vim.opt.lazyredraw = true
+vim.opt.updatetime = 250
+vim.opt.timeoutlen = 400
+
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
 	vim.fn.system({
@@ -41,12 +48,12 @@ require("lazy").setup({
 					"lua_ls",
 					"gopls",
 					"pyright",
-					"ts_ls", -- NOMBRE CORRECTO
+					"ts_ls",
 					"html",
 					"cssls",
 					"clangd",
 					"jsonls",
-					"sqls",
+					"jdtls",
 				},
 			})
 		end
@@ -54,6 +61,8 @@ require("lazy").setup({
 	{ "hrsh7th/nvim-cmp" },
 	{ "hrsh7th/cmp-nvim-lsp" },
 	{ "L3MON4D3/LuaSnip" },
+
+	{ "jiangmiao/auto-pairs" },
 
 	-- Treesitter
 	{
@@ -128,7 +137,21 @@ local servers = {
 	cssls = {},
 	clangd = {},
 	jsonls = {},
-	sqls = {},
+	jdtls = {},
+}
+
+
+local server_cmds = {
+	bashls = { "bash-language-server", "start" },
+	lua_ls = { "lua-language-server" },
+	gopls = { "gopls" },
+	pyright = { "pyright-langserver", "--stdio" },
+	ts_ls = { "typescript-language-server", "--stdio" },
+	html = { "vscode-html-language-server", "--stdio" },
+	cssls = { "vscode-css-language-server", "--stdio" },
+	clangd = { "clangd" },
+	jsonls = { "vscode-json-language-server", "--stdio" },
+	jdtls = { "jdtls" },
 }
 
 -- Configurar cada servidor LSP con el nuevo método
@@ -141,11 +164,14 @@ for server, config in pairs(servers) do
 	vim.api.nvim_create_autocmd("FileType", {
 		pattern = {
 			"lua", "go", "python", "javascript", "typescript",
-			"html", "css", "c", "cpp", "json", "sql", "bash", "sh"
+			"html", "css", "c", "cpp", "json", "bash", "sh",
+			"java"
 		},
 		callback = function(args)
 			local bufnr = args.buf
 			local filetype = vim.bo[bufnr].filetype
+
+			if filetype == "sql" then return end
 
 			-- Mapear filetypes a servidores LSP
 			local ft_to_server = {
@@ -159,19 +185,27 @@ for server, config in pairs(servers) do
 				c = "clangd",
 				cpp = "clangd",
 				json = "jsonls",
-				sql = "sqls",
 				bash = "bashls",
 				sh = "bashls",
+				java = "jdtls",
 			}
 
 			local server_for_ft = ft_to_server[filetype]
 			if server_for_ft and server_for_ft == server then
+				local root_dir = vim.fs.dirname(vim.fs.find({ '.git', 'package.json', 'Makefile' },
+					{ upward = true })[1])
+
+				if server == 'jdtls' then
+					root_dir = vim.fs.dirname(vim.fs.find({ 'pom.xml', 'build.gradle' },
+						{ upward = true })[1])
+				end
+
 				vim.lsp.start({
 					name = server,
+					cmd = server_cmds[server],
 					capabilities = capabilities,
 					settings = config and config.settings or nil,
-					root_dir = vim.fs.dirname(vim.fs.find({ '.git', 'package.json', 'Makefile' },
-						{ upward = true })[1]),
+					root_dir = root_dir, -- Usamos la variable definida o modificada
 				})
 			end
 		end,
@@ -217,7 +251,7 @@ require("nvim-treesitter.configs").setup({
 
 -- Formateo automático al guardar
 vim.api.nvim_create_autocmd('BufWritePre', {
-	pattern = { '*.lua', '*.py', '*.js', '*.ts', '*.go', '*.json' },
+	pattern = { '*.lua', '*.py', '*.js', '*.ts', '*.go', '*.json', '*.c', '*.cpp', '*.java' },
 	callback = function()
 		vim.lsp.buf.format({ async = false })
 	end,
